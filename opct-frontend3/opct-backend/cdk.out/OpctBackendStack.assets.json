@@ -1,0 +1,19 @@
+{
+  "version": "38.0.1",
+  "files": {
+    "5a193167d9503281e32813465add8d1e062ff3f72ec8be40360e6572857df071": {
+      "source": {
+        "path": "OpctBackendStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "5a193167d9503281e32813465add8d1e062ff3f72ec8be40360e6572857df071.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

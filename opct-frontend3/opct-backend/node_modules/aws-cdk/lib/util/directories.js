@@ -1,0 +1,50 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.cdkHomeDir = cdkHomeDir;
+exports.cdkCacheDir = cdkCacheDir;
+exports.rootDir = rootDir;
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+/**
+ * Return a location that will be used as the CDK home directory.
+ * Currently the only thing that is placed here is the cache.
+ *
+ * First try to use the users home directory (i.e. /home/someuser/),
+ * but if that directory does not exist for some reason create a tmp directory.
+ *
+ * Typically it wouldn't make sense to create a one time use tmp directory for
+ * the purpose of creating a cache, but since this only applies to users that do
+ * not have a home directory (some CI systems?) this should be fine.
+ */
+function cdkHomeDir() {
+    const tmpDir = fs.realpathSync(os.tmpdir());
+    let home;
+    try {
+        home = path.join((os.userInfo().homedir ?? os.homedir()).trim(), '.cdk');
+    }
+    catch { }
+    return process.env.CDK_HOME
+        ? path.resolve(process.env.CDK_HOME)
+        : home || fs.mkdtempSync(path.join(tmpDir, '.cdk')).trim();
+}
+function cdkCacheDir() {
+    return path.join(cdkHomeDir(), 'cache');
+}
+function rootDir(fail) {
+    function _rootDir(dirname) {
+        const manifestPath = path.join(dirname, 'package.json');
+        if (fs.existsSync(manifestPath)) {
+            return dirname;
+        }
+        if (path.dirname(dirname) === dirname) {
+            if (fail ?? true) {
+                throw new Error('Unable to find package manifest');
+            }
+            return undefined;
+        }
+        return _rootDir(path.dirname(dirname));
+    }
+    return _rootDir(__dirname);
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGlyZWN0b3JpZXMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJkaXJlY3Rvcmllcy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOztBQWVBLGdDQVNDO0FBRUQsa0NBRUM7QUFZRCwwQkFnQkM7QUF4REQseUJBQXlCO0FBQ3pCLHlCQUF5QjtBQUN6Qiw2QkFBNkI7QUFFN0I7Ozs7Ozs7Ozs7R0FVRztBQUNILFNBQWdCLFVBQVU7SUFDeEIsTUFBTSxNQUFNLEdBQUcsRUFBRSxDQUFDLFlBQVksQ0FBQyxFQUFFLENBQUMsTUFBTSxFQUFFLENBQUMsQ0FBQztJQUM1QyxJQUFJLElBQUksQ0FBQztJQUNULElBQUksQ0FBQztRQUNILElBQUksR0FBRyxJQUFJLENBQUMsSUFBSSxDQUFDLENBQUMsRUFBRSxDQUFDLFFBQVEsRUFBRSxDQUFDLE9BQU8sSUFBSSxFQUFFLENBQUMsT0FBTyxFQUFFLENBQUMsQ0FBQyxJQUFJLEVBQUUsRUFBRSxNQUFNLENBQUMsQ0FBQztJQUMzRSxDQUFDO0lBQUMsTUFBTSxDQUFDLENBQUEsQ0FBQztJQUNWLE9BQU8sT0FBTyxDQUFDLEdBQUcsQ0FBQyxRQUFRO1FBQ3pCLENBQUMsQ0FBQyxJQUFJLENBQUMsT0FBTyxDQUFDLE9BQU8sQ0FBQyxHQUFHLENBQUMsUUFBUSxDQUFDO1FBQ3BDLENBQUMsQ0FBQyxJQUFJLElBQUksRUFBRSxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUMsSUFBSSxDQUFDLE1BQU0sRUFBRSxNQUFNLENBQUMsQ0FBQyxDQUFDLElBQUksRUFBRSxDQUFDO0FBQy9ELENBQUM7QUFFRCxTQUFnQixXQUFXO0lBQ3pCLE9BQU8sSUFBSSxDQUFDLElBQUksQ0FBQyxVQUFVLEVBQUUsRUFBRSxPQUFPLENBQUMsQ0FBQztBQUMxQyxDQUFDO0FBWUQsU0FBZ0IsT0FBTyxDQUFDLElBQWM7SUFDcEMsU0FBUyxRQUFRLENBQUMsT0FBZTtRQUMvQixNQUFNLFlBQVksR0FBRyxJQUFJLENBQUMsSUFBSSxDQUFDLE9BQU8sRUFBRSxjQUFjLENBQUMsQ0FBQztRQUN4RCxJQUFJLEVBQUUsQ0FBQyxVQUFVLENBQUMsWUFBWSxDQUFDLEVBQUUsQ0FBQztZQUNoQyxPQUFPLE9BQU8sQ0FBQztRQUNqQixDQUFDO1FBQ0QsSUFBSSxJQUFJLENBQUMsT0FBTyxDQUFDLE9BQU8sQ0FBQyxLQUFLLE9BQU8sRUFBRSxDQUFDO1lBQ3RDLElBQUksSUFBSSxJQUFJLElBQUksRUFBRSxDQUFDO2dCQUNqQixNQUFNLElBQUksS0FBSyxDQUFDLGlDQUFpQyxDQUFDLENBQUM7WUFDckQsQ0FBQztZQUNELE9BQU8sU0FBUyxDQUFDO1FBQ25CLENBQUM7UUFDRCxPQUFPLFFBQVEsQ0FBQyxJQUFJLENBQUMsT0FBTyxDQUFDLE9BQU8sQ0FBQyxDQUFDLENBQUM7SUFDekMsQ0FBQztJQUVELE9BQU8sUUFBUSxDQUFDLFNBQVMsQ0FBQyxDQUFDO0FBQzdCLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgKiBhcyBmcyBmcm9tICdmcyc7XG5pbXBvcnQgKiBhcyBvcyBmcm9tICdvcyc7XG5pbXBvcnQgKiBhcyBwYXRoIGZyb20gJ3BhdGgnO1xuXG4vKipcbiAqIFJldHVybiBhIGxvY2F0aW9uIHRoYXQgd2lsbCBiZSB1c2VkIGFzIHRoZSBDREsgaG9tZSBkaXJlY3RvcnkuXG4gKiBDdXJyZW50bHkgdGhlIG9ubHkgdGhpbmcgdGhhdCBpcyBwbGFjZWQgaGVyZSBpcyB0aGUgY2FjaGUuXG4gKlxuICogRmlyc3QgdHJ5IHRvIHVzZSB0aGUgdXNlcnMgaG9tZSBkaXJlY3RvcnkgKGkuZS4gL2hvbWUvc29tZXVzZXIvKSxcbiAqIGJ1dCBpZiB0aGF0IGRpcmVjdG9yeSBkb2VzIG5vdCBleGlzdCBmb3Igc29tZSByZWFzb24gY3JlYXRlIGEgdG1wIGRpcmVjdG9yeS5cbiAqXG4gKiBUeXBpY2FsbHkgaXQgd291bGRuJ3QgbWFrZSBzZW5zZSB0byBjcmVhdGUgYSBvbmUgdGltZSB1c2UgdG1wIGRpcmVjdG9yeSBmb3JcbiAqIHRoZSBwdXJwb3NlIG9mIGNyZWF0aW5nIGEgY2FjaGUsIGJ1dCBzaW5jZSB0aGlzIG9ubHkgYXBwbGllcyB0byB1c2VycyB0aGF0IGRvXG4gKiBub3QgaGF2ZSBhIGhvbWUgZGlyZWN0b3J5IChzb21lIENJIHN5c3RlbXM/KSB0aGlzIHNob3VsZCBiZSBmaW5lLlxuICovXG5leHBvcnQgZnVuY3Rpb24gY2RrSG9tZURpcigpIHtcbiAgY29uc3QgdG1wRGlyID0gZnMucmVhbHBhdGhTeW5jKG9zLnRtcGRpcigpKTtcbiAgbGV0IGhvbWU7XG4gIHRyeSB7XG4gICAgaG9tZSA9IHBhdGguam9pbigob3MudXNlckluZm8oKS5ob21lZGlyID8/IG9zLmhvbWVkaXIoKSkudHJpbSgpLCAnLmNkaycpO1xuICB9IGNhdGNoIHt9XG4gIHJldHVybiBwcm9jZXNzLmVudi5DREtfSE9NRVxuICAgID8gcGF0aC5yZXNvbHZlKHByb2Nlc3MuZW52LkNES19IT01FKVxuICAgIDogaG9tZSB8fCBmcy5ta2R0ZW1wU3luYyhwYXRoLmpvaW4odG1wRGlyLCAnLmNkaycpKS50cmltKCk7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBjZGtDYWNoZURpcigpIHtcbiAgcmV0dXJuIHBhdGguam9pbihjZGtIb21lRGlyKCksICdjYWNoZScpO1xufVxuXG4vKipcbiAqIEZyb20gdGhlIGN1cnJlbnQgZmlsZSwgZmluZCB0aGUgZGlyZWN0b3J5IHRoYXQgY29udGFpbnMgdGhlIENMSSdzIHBhY2thZ2UuanNvblxuICpcbiAqIENhbid0IHVzZSBgX19kaXJuYW1lYCBpbiBwcm9kdWN0aW9uIGNvZGUsIGFzIHRoZSBDTEkgd2lsbCBnZXQgYnVuZGxlZCBhcyBpdCdzXG4gKiByZWxlYXNlZCBhbmQgYF9fZGlybmFtZWAgd2lsbCByZWZlciB0byBhIGRpZmZlcmVudCBsb2NhdGlvbiBpbiB0aGUgYC50c2AgZm9ybVxuICogYXMgaXQgd2lsbCBpbiB0aGUgZmluYWwgZXhlY3V0aW5nIGZvcm0uXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiByb290RGlyKCk6IHN0cmluZztcbmV4cG9ydCBmdW5jdGlvbiByb290RGlyKGZhaWw6IHRydWUpOiBzdHJpbmc7XG5leHBvcnQgZnVuY3Rpb24gcm9vdERpcihmYWlsOiBmYWxzZSk6IHN0cmluZyB8IHVuZGVmaW5lZDtcbmV4cG9ydCBmdW5jdGlvbiByb290RGlyKGZhaWw/OiBib29sZWFuKSB7XG4gIGZ1bmN0aW9uIF9yb290RGlyKGRpcm5hbWU6IHN0cmluZyk6IHN0cmluZyB8IHVuZGVmaW5lZCB7XG4gICAgY29uc3QgbWFuaWZlc3RQYXRoID0gcGF0aC5qb2luKGRpcm5hbWUsICdwYWNrYWdlLmpzb24nKTtcbiAgICBpZiAoZnMuZXhpc3RzU3luYyhtYW5pZmVzdFBhdGgpKSB7XG4gICAgICByZXR1cm4gZGlybmFtZTtcbiAgICB9XG4gICAgaWYgKHBhdGguZGlybmFtZShkaXJuYW1lKSA9PT0gZGlybmFtZSkge1xuICAgICAgaWYgKGZhaWwgPz8gdHJ1ZSkge1xuICAgICAgICB0aHJvdyBuZXcgRXJyb3IoJ1VuYWJsZSB0byBmaW5kIHBhY2thZ2UgbWFuaWZlc3QnKTtcbiAgICAgIH1cbiAgICAgIHJldHVybiB1bmRlZmluZWQ7XG4gICAgfVxuICAgIHJldHVybiBfcm9vdERpcihwYXRoLmRpcm5hbWUoZGlybmFtZSkpO1xuICB9XG5cbiAgcmV0dXJuIF9yb290RGlyKF9fZGlybmFtZSk7XG59XG4iXX0=
